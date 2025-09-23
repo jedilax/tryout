@@ -12,7 +12,7 @@ pipeline {
         }
         stage('VM2') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'jedi', passwordVariable: 'GIT_PSSWD', usernameVariable: 'GIT_USER')]) {
+                withCredentials([usernamePassword(credentialsId: 'jedilax', passwordVariable: 'GIT_PSSWD', usernameVariable: 'GIT_USER')]) {
                     sshagent (credentials: ['jedissh']) {
                         sh '''
                         ssh -o StrictHostKeyChecking=no surapatpp@172.20.10.6 "
