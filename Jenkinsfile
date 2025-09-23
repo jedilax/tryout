@@ -4,7 +4,7 @@ pipeline {
 
   environment {
     REGISTRY     = 'ghcr.io'
-    REGISTRY_NS  = 'jedilax'                 // <— OK for GHCR: ghcr.io/<owner>/<image>
+    REGISTRY_NS  = 'jedilax'     // ghcr.io/<owner>
     IMAGE_NAME   = 'simple-api'
 
     // init so post{} never crashes even if early stages fail
@@ -19,23 +19,24 @@ pipeline {
     string(name: 'MAIN_BRANCH',     defaultValue: 'master')
     booleanParam(name: 'CLEAN_STATE', defaultValue: true, description: 'Clean old containers before deploy')
   }
-  
-  stage('VM2: Checkout simple-api & set tags') {
-    agent { label 'vm2' }
-    steps {
-      git branch: params.MAIN_BRANCH, url: params.SIMPLE_API_REPO
-      script {
-        // assign straight to env.* instead of "def"
-        env.COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        env.IMAGE_TAG    = "${env.BUILD_NUMBER}-${env.COMMIT_SHORT}"
-        env.FULL_IMAGE   = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-        env.LATEST_IMAGE = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:latest"
-  
-        echo "IMAGE_TAG: ${env.IMAGE_TAG}"
-        echo "FULL_IMAGE: ${env.FULL_IMAGE}"
+
+  stages {
+    /* ================= VM2 (Test) ================= */
+    stage('VM2: Checkout simple-api & set tags') {
+      agent { label 'vm2' }
+      steps {
+        git branch: params.MAIN_BRANCH, url: params.SIMPLE_API_REPO
+        script {
+          env.COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+          env.IMAGE_TAG    = "${env.BUILD_NUMBER}-${env.COMMIT_SHORT}"
+          env.FULL_IMAGE   = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+          env.LATEST_IMAGE = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:latest"
+
+          echo "IMAGE_TAG: ${env.IMAGE_TAG}"
+          echo "FULL_IMAGE: ${env.FULL_IMAGE}"
+        }
       }
     }
-  }
 
     stage('VM2: Unit Tests') {
       agent { label 'vm2' }
@@ -49,7 +50,11 @@ pipeline {
           pytest -q --junitxml=test-results/unit.xml || true
         '''
       }
-      post { always { junit allowEmptyResults: true, testResults: 'test-results/unit.xml' } }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: 'test-results/unit.xml'
+        }
+      }
     }
 
     stage('VM2: Build Image & Run Container') {
@@ -79,13 +84,18 @@ pipeline {
           '''
         }
       }
-      post { always { archiveArtifacts artifacts: 'robot/reports/**', fingerprint: true } }
+      post {
+        always {
+          archiveArtifacts artifacts: 'robot/reports/**', fingerprint: true
+        }
+      }
     }
 
     stage('VM2: Push Image to GHCR') {
       agent { label 'vm2' }
-      // Create Jenkins credential "ghcr-jenkins" (Username + PAT as password), or convert to Secret Text if you prefer
-      environment { GHCR = credentials('ghcr-jenkins') }
+      environment {
+        GHCR = credentials('ghcr-jenkins') // create this credential (username = GitHub user, password = PAT)
+      }
       steps {
         sh """
           echo "${GHCR_PSW}" | docker login -u "${GHCR_USR}" --password-stdin ${env.REGISTRY}
@@ -123,3 +133,4 @@ pipeline {
       echo "Pipeline finished. Image built: ${env.FULL_IMAGE ?: '(not built)'}"
     }
   }
+}
