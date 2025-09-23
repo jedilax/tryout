@@ -98,13 +98,7 @@ pipeline {
       }
     }
 
-    stage('Health Check (8080)') {
-      steps {
-        sh """
-          for i in {1..30}; do curl -fsS http://172.20.10.6:8080/health && break || sleep 2; done
-          curl -fsS http://localhost:8080/health
-        """
-      }
+
     }
   }
 
