@@ -15,7 +15,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'jedilax', passwordVariable: 'GIT_PSSWD', usernameVariable: 'GIT_USER')]) {
                     sshagent (credentials: ['jedissh']) {
                         sh '''
-                        ssh -o StrictHostKeyChecking=no surapatpp@172.20.10.6 "
+                        ssh -o StrictHostKeyChecking=no surapatpp@172.20.10.5 "
                         # ไปที่ home directory
                         cd ~
                         # เข้าไปที่ project
