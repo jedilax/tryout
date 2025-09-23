@@ -93,7 +93,7 @@ pipeline {
         sh """
           ${params.CLEAN_STATE ? "docker rm -f simple-api-pre || true" : ":"}
           docker pull ${env.FULL_IMAGE}
-          docker run -d --name simple-api-pre -p 8080:5000 --restart unless-stopped ${env.FULL_IMAGE}
+          docker run -d --name simple-api-pre '-p' 8080:5000 --restart unless-stopped ${env.FULL_IMAGE}
         """
       }
     }
