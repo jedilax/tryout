@@ -3,8 +3,8 @@ pipeline {
   options { timestamps(); ansiColor('xterm') }
 
   environment {
-    REGISTRY     = 'docker.io'
-    REGISTRY_NS  = 'your_dockerhub_username'     // change this
+    REGISTRY     = 'ghcr.io'
+    REGISTRY_NS  = 'jedilax'     // change this
     IMAGE_NAME   = 'simple-api'
     COMMIT_SHORT = "${env.GIT_COMMIT?.take(7) ?: 'local'}"
     IMAGE_TAG    = "${env.BUILD_NUMBER}-${COMMIT_SHORT}"
@@ -13,8 +13,8 @@ pipeline {
   }
 
   parameters {
-    string(name: 'SIMPLE_API_REPO', defaultValue: 'https://github.com/your-org/simple-api.git')
-    string(name: 'ROBOT_REPO',      defaultValue: 'https://github.com/your-org/simple-api-robot.git')
+    string(name: 'SIMPLE_API_REPO', defaultValue: 'https://github.com/jedilax/tryout.git')
+    string(name: 'ROBOT_REPO',      defaultValue: 'https://github.com/jedilax/ConsoleApp2.git')
     string(name: 'MAIN_BRANCH',     defaultValue: 'main')
     booleanParam(name: 'CLEAN_STATE', defaultValue: true, description: 'Clean old containers before deploy')
   }
@@ -52,7 +52,7 @@ pipeline {
           docker build -t ${FULL_IMAGE} -t ${LATEST_IMAGE} .
           docker rm -f simple-api || true
           docker run -d --name simple-api -p 5000:5000 ${FULL_IMAGE}
-          for i in {1..30}; do curl -fsS http://localhost:5000/health && break || sleep 2; done
+          for i in {1..30}; do curl -fsS http://172.20.10.5:5000/health && break || sleep 2; done
         """
       }
     }
@@ -68,7 +68,7 @@ pipeline {
             pip install -U pip
             pip install robotframework robotframework-requests
             mkdir -p reports
-            robot -d reports -v BASE_URL:http://localhost:5000 .
+            robot -d reports -v BASE_URL:http://http://172.20.10.5:5000 .
           '''
         }
       }
@@ -105,8 +105,8 @@ pipeline {
       agent { label 'vm3' }
       steps {
         sh """
-          for i in {1..30}; do curl -fsS http://localhost:8080/health && break || sleep 2; done
-          curl -fsS http://localhost:8080/health
+          for i in {1..30}; do curl -fsS http://172.20.10.7:8080/health && break || sleep 2; done
+          curl -fsS http://172.20.10.7:8080/health
         """
       }
     }
