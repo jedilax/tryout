@@ -123,4 +123,3 @@ pipeline {
       echo "Pipeline finished. Image built: ${env.FULL_IMAGE ?: '(not built)'}"
     }
   }
-}
