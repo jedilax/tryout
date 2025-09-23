@@ -20,19 +20,16 @@ pipeline {
                         cd ~
                         # เข้าไปที่ project
                         cd tryout
-                        docker compose down
+                        docker stop simple-api
+                        docker rm simple-api
                         git pull origin master
                         
                         # สร้าง/อัปเดต image และ start service
-                        docker compose up -d --build
-                        ./wait-for-it.sh localhost:5000 -t 30 -- echo "Service is up"
-                        docker image prune -a -f
-                        pip install -r requirements.txt
-                        python3 -m unittest unit_test.py
-                        cd ~/simple-api-robot
-                        git pull origin main
-                        pip install -r requirements.txt
-                        robot robot-test.robot
+                        docker build -t simple-api:latest .
+                        docker run -d --name simple-api -p 5000:5000 simple-api:latest
+                        cd ConsoleApp2/
+                        git pull origin master
+                        robot tests/api_tests.robot
                         echo $GIT_PSSWD | docker login ghcr.io -u $GIT_USER --password-stdin
                         docker tag simple-api:latest ghcr.io/jedilax/simple-api:latest
                         docker push ghcr.io/jedilax/simple-api:latest
@@ -51,9 +48,8 @@ pipeline {
                         echo $GIT_PSSWD | docker login ghcr.io -u $GIT_USER --password-stdin
                         docker stop simple-api || true
                         docker rmi ghcr.io/jedilax/simple-api:latest || true
-                        docker pull ghcr.io/jedilax/simple-api:latest
-                        docker run -d -p 5000:5000 --name simple-api --rm ghcr.io/jedilax/simple-api:latest
-                        ./wait-for-it.sh localhost:5000 -t 30 -- echo "Service is up"
+                        docker pull ghcr.io/jedilax/tryout:latest
+                        docker run -d -p 5000:5000 --name simple-api --rm ghcr.io/jedilax/tryout:latest
                         "
                         '''
                     }
