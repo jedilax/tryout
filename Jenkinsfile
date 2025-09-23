@@ -19,23 +19,23 @@ pipeline {
     string(name: 'MAIN_BRANCH',     defaultValue: 'master')
     booleanParam(name: 'CLEAN_STATE', defaultValue: true, description: 'Clean old containers before deploy')
   }
-
-  stages {
-    /* ================= VM2 (Test) ================= */
-    stage('VM2: Checkout simple-api & set tags') {
-      agent { label 'vm2' }
-      steps {
-        git branch: params.MAIN_BRANCH, url: params.SIMPLE_API_REPO
-        script {
-          def short = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-          env.IMAGE_TAG     = "${env.BUILD_NUMBER}-${short}"
-          env.FULL_IMAGE    = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
-          env.LATEST_IMAGE  = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:latest"
-          echo "IMAGE_TAG: ${env.IMAGE_TAG}"
-          echo "FULL_IMAGE: ${env.FULL_IMAGE}"
-        }
+  
+  stage('VM2: Checkout simple-api & set tags') {
+    agent { label 'vm2' }
+    steps {
+      git branch: params.MAIN_BRANCH, url: params.SIMPLE_API_REPO
+      script {
+        // assign straight to env.* instead of "def"
+        env.COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+        env.IMAGE_TAG    = "${env.BUILD_NUMBER}-${env.COMMIT_SHORT}"
+        env.FULL_IMAGE   = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+        env.LATEST_IMAGE = "${env.REGISTRY_NS}/${env.IMAGE_NAME}:latest"
+  
+        echo "IMAGE_TAG: ${env.IMAGE_TAG}"
+        echo "FULL_IMAGE: ${env.FULL_IMAGE}"
       }
     }
+  }
 
     stage('VM2: Unit Tests') {
       agent { label 'vm2' }
