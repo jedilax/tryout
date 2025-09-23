@@ -1,6 +1,6 @@
 pipeline {
   agent none
-  options { timestamps(); ansiColor('xterm') }
+  options { timestamps() }
 
   environment {
     REGISTRY     = 'ghcr.io'
