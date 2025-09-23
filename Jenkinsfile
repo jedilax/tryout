@@ -15,7 +15,7 @@ pipeline {
   parameters {
     string(name: 'SIMPLE_API_REPO', defaultValue: 'https://github.com/jedilax/tryout.git')
     string(name: 'ROBOT_REPO',      defaultValue: 'https://github.com/jedilax/ConsoleApp2.git')
-    string(name: 'MAIN_BRANCH',     defaultValue: 'main')
+    string(name: 'MAIN_BRANCH',     defaultValue: 'master')
     booleanParam(name: 'CLEAN_STATE', defaultValue: true, description: 'Clean old containers before deploy')
   }
 
