@@ -5,15 +5,13 @@ pipeline {
     }
     stages {
         stage('Checkout') {
-            steps {
-                // Clone or pull the latest code
-                checkout scm
-            }
+            steps { checkout scm }
         }
         stage('VM2') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'jedilax', passwordVariable: 'GIT_PSSWD', usernameVariable: 'GIT_USER')]) {
-                    sshagent (credentials: ['jedissh']) {
+                sshagent (credentials: ['jedissh']) {
+                    withCredentials([usernamePassword(credentialsId: 'jedilax', passwordVariable: 'GIT_PSSWD', usernameVariable: 'GIT_USER')]) 
+                    {
                         sh '''
                         ssh -o StrictHostKeyChecking=no surapatpp@192.168.1.124 "
                         # ไปที่ home directory
